@@ -1,5 +1,8 @@
 import datetime
+import requests
 from geopy.geocoders import Nominatim
+from time import sleep
+from random import random
 
 TINDER_URL = "https://api.gotinder.com"
 geolocator = Nominatim(user_agent="tinder_auto_swiper")
@@ -40,6 +43,25 @@ class Person(object):
 
     def dislike(self):
         return self._api.dislike(self.id)
+
+    def download_images(self, folder=".", sleep_max_for=0):
+        with open(PROF_FILE, "r") as f:
+            lines = f.readlines()
+            if self.id in lines:
+                return
+        
+        with open(PROF_FILE, "a") as f:
+            f.write(self.id+"\r\n")
+        
+        index = -1
+        
+        for image_url in self.images:
+            index += 1
+            req = requests.get(image_url, stream=True)
+            if req.status_code == 200:
+                with open(f"{folder}/{self.id}_{self.name}_{index}.jpeg", "wb") as f:
+                    f.write(req.content)
+            sleep(random()*sleep_max_for)
 
 class Profile(Person):
 
